@@ -1,0 +1,13 @@
+name: BrainsCustoms
+version: '1.0-SNAPSHOT'
+main: me.brainsskel.brainscustoms.BrainsCustoms
+api-version: '1.21'
+authors: [BrainSkel]
+description: Plugin for brains random shit
+commands:
+  CustomsNameplate:
+    description: Set nameplate
+    usage: /CustomsNameplate <player>
+  CustomsClearNameplates:
+    description: Clear all text displays
+    usage: /CustomsClearNameplates
