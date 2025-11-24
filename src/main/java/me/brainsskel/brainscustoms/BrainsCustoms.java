@@ -25,28 +25,43 @@ public final class BrainsCustoms extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         instance = this;
-        new NameplateManager();
-        displays.clear();
 
-        // Register Events ------------------------------------------------
-        getServer().getPluginManager().registerEvents(new PlayerQuitListener(), this);
-        Bukkit.getPluginManager().registerEvents(NameplateManager.get(), this);
+        // ---------------------------
+        // Hook LuckPerms FIRST
+        // ---------------------------
+        RegisteredServiceProvider<LuckPerms> provider =
+                Bukkit.getServicesManager().getRegistration(LuckPerms.class);
 
-        // Register Commands ------------------------------------------------
-        getCommand("CustomsClearNameplates").setExecutor(new CustomsClearNameplates());
-        getCommand("CustomsNameplate").setExecutor(new CustomsNameplate());
-
-        getLogger().info("Brains Customs has been enabled!"); // Announce server has started
-
-        // Implement luckperms
-        RegisteredServiceProvider<LuckPerms> provider = Bukkit.getServicesManager().getRegistration(LuckPerms.class);
         if (provider != null) {
             luckPerms = provider.getProvider();
             getLogger().info("LuckPerms API hooked successfully!");
         } else {
             getLogger().warning("Could not hook into LuckPerms!");
+            return;
         }
+
+        // ---------------------------
+        // Create NameplateManager second
+        // ---------------------------
+        NameplateManager nameplateManager = new NameplateManager(luckPerms);
+
+        // ---------------------------
+        // Register Bukkit listeners
+        // ---------------------------
+        Bukkit.getPluginManager().registerEvents(nameplateManager, this);
+        Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this);
+
+        // ---------------------------
+        // Register commands
+        // ---------------------------
+        getCommand("CustomsClearNameplates").setExecutor(new CustomsClearNameplates());
+        getCommand("CustomsNameplate").setExecutor(new CustomsNameplate());
+
+        displays.clear();
+
+        getLogger().info("Brains Customs has been enabled!");
     }
+
     public static LuckPerms getLuckPerms() {
         return luckPerms;
     }

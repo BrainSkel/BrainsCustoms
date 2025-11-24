@@ -30,6 +30,7 @@ import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
+import java.util.List;
 
 import java.awt.*;
 import java.awt.Color;
@@ -41,8 +42,9 @@ import java.util.UUID;
 
 public class NameplateManager implements Listener {
 
-    private final Map<UUID, TextDisplay> displays = new HashMap<>();
     private final LuckPerms luckPerms;
+    private final Map<UUID, List<TextDisplay>> displays = new HashMap<>();
+
     // Singleton
     private static NameplateManager instance;
     public static NameplateManager get() {
@@ -50,8 +52,18 @@ public class NameplateManager implements Listener {
     }
     //LuckPerms luckPerms = LuckPermsProvider.get();
 
-    public NameplateManager() {
+    public NameplateManager(LuckPerms luckPerms) {
         instance = this;
+        this.luckPerms = luckPerms;
+        luckPerms.getEventBus().subscribe(UserDataRecalculateEvent.class, event -> {
+            User user = event.getUser();
+            Player target = Bukkit.getPlayer(user.getUsername());
+            if (target ==null) return;
+
+            Bukkit.getScheduler().runTaskLater(BrainsCustoms.getInstance(), () ->
+                    create(target), 2L);
+        });
+
 
         // Cleanup on server start (optional)
         Bukkit.getWorlds().forEach(world ->
@@ -126,8 +138,7 @@ public class NameplateManager implements Listener {
         player.addPassenger(rankDisplay);
         player.addPassenger(playerNameDisplay);
 
-        displays.put(player.getUniqueId(), rankDisplay);
-        displays.put(player.getUniqueId(), playerNameDisplay);
+        displays.put(player.getUniqueId(), List.of(rankDisplay, playerNameDisplay));
     }
 
 
@@ -136,8 +147,12 @@ public class NameplateManager implements Listener {
     // Remove a player's tag
     // -------------------------
     public void remove(Player player) {
-        TextDisplay old = displays.remove(player.getUniqueId());
-        if (old != null && !old.isDead()) old.remove();
+        List<TextDisplay> list = displays.remove(player.getUniqueId());
+        if (list == null) return;
+
+        for (TextDisplay td : list) {
+            if (!td.isDead()) td.remove();
+        }
     }
 
     // -------------------------
@@ -155,19 +170,30 @@ public class NameplateManager implements Listener {
         team.addEntry(player.getName());
     }
 
+
+    // ----------------
+    // Reload everyones namepaltes
+    // ----------------
+
+    public void reloadAllNameplates() {
+        for (Player p : Bukkit.getOnlinePlayers()) {
+            create(p);
+        }
+    }
+
     // -------------------------
     // Events for cleanup & recreation
     // -------------------------
 
-    public void permissionChanged() {
-        luckPerms.getEventBus().subscribe(UserDataRecalculateEvent.class, e -> {
-            User user = e.getUser();
-            Player target = Bukkit.getPlayer(user.getUsername());
-            if (target != null) {
-                create(target);
-            }
-        });
-    }
+//    public void permissionChanged() {
+//        luckPerms.getEventBus().subscribe(UserDataRecalculateEvent.class, e -> {
+//            User user = e.getUser();
+//            Player target = Bukkit.getPlayer(user.getUsername());
+//            if (target != null) {
+//                create(target);
+//            }
+//        });
+//    }
 
     // Remove when quitting
     @EventHandler
