@@ -12,15 +12,18 @@ import net.luckperms.api.event.user.UserDataRecalculateEvent;
 import net.luckperms.api.model.user.User;
 import org.bukkit.Bukkit;
 import org.bukkit.Location;
+import org.bukkit.World;
 import org.bukkit.command.Command;
 import org.bukkit.command.CommandExecutor;
 import org.bukkit.command.CommandSender;
 import org.bukkit.entity.Display;
+import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
 import org.bukkit.entity.TextDisplay;
 import org.bukkit.event.EventHandler;
 import org.bukkit.event.Listener;
 import org.bukkit.event.entity.PlayerDeathEvent;
+import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
@@ -71,6 +74,14 @@ public class NameplateManager implements Listener {
         );
     }
 
+    public void clearAllNameplates() {
+        for (World world : Bukkit.getWorlds()) {
+            world.getEntities().stream()
+                    .filter(e -> e instanceof TextDisplay)
+                    .forEach(Entity::remove);
+        }
+    }
+
     // -------------------------
     // Create or Update Nameplate
     // -------------------------
@@ -98,6 +109,7 @@ public class NameplateManager implements Listener {
 
         Component playerName = MiniMessage.miniMessage().deserialize("<gradient:#c9c9c9:#e8e8e8>"+ player.getName() +"</gradient>");
         Location loc = player.getLocation();
+        loc.setPitch(90F);
 
         TextDisplay rankDisplay = player.getWorld().spawn(loc, TextDisplay.class, td -> {
             td.setBillboard(Display.Billboard.CENTER);
@@ -118,7 +130,7 @@ public class NameplateManager implements Listener {
         // correct offset ABOVE the head
         rankDisplay.setTransformation(
                 new Transformation(
-                        new Vector3f(0, 0.50f, 0),
+                        new Vector3f(0, 0.50f, -0.2F),
                         new AxisAngle4f(),
                         new Vector3f(1, 1, 1),
                         new AxisAngle4f()
@@ -127,7 +139,7 @@ public class NameplateManager implements Listener {
 
         playerNameDisplay.setTransformation(
                 new Transformation(
-                        new Vector3f(0, 0.25f, 0),
+                        new Vector3f(0, 0.25f, -0.2F),
                         new AxisAngle4f(),
                         new Vector3f(1, 1, 1),
                         new AxisAngle4f()
@@ -176,9 +188,11 @@ public class NameplateManager implements Listener {
     // ----------------
 
     public void reloadAllNameplates() {
+        clearAllNameplates();
         for (Player p : Bukkit.getOnlinePlayers()) {
             create(p);
         }
+
     }
 
     // -------------------------
@@ -217,6 +231,14 @@ public class NameplateManager implements Listener {
     // Optional: auto-create nameplate on join
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
+        reloadAllNameplates();
+        Bukkit.getScheduler().runTaskLater(BrainsCustoms.getInstance(), () ->
+                create(e.getPlayer()), 5L);
+
+    }
+
+    @EventHandler
+    public void changeDimension(PlayerChangedWorldEvent e) {
         Bukkit.getScheduler().runTaskLater(BrainsCustoms.getInstance(), () ->
                 create(e.getPlayer()), 5L);
     }
