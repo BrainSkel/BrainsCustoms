@@ -1,0 +1,1 @@
+chat-format: "{RANK} <green>{PLAYER}</green>: <white>{MESSAGE}</white>"

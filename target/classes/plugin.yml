@@ -8,6 +8,12 @@ commands:
   CustomsNameplate:
     description: Set nameplate
     usage: /CustomsNameplate <player>
+    permission: brainscustoms.enableNameplate
   CustomsClearNameplates:
     description: Clear all text displays
     usage: /CustomsClearNameplates
+    permission: brainscustoms.ClearNameplates
+  CustomsReload:
+    description: Reloads BrainsCustoms plugin
+    usage: /CustomsReload
+    permission: brainscustoms.reload
