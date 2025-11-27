@@ -25,6 +25,7 @@ public final class BrainsCustoms extends JavaPlugin implements Listener {
     @Override
     public void onEnable() {
         instance = this;
+        saveDefaultConfig();
 
         // ---------------------------
         // Hook LuckPerms FIRST
@@ -40,6 +41,7 @@ public final class BrainsCustoms extends JavaPlugin implements Listener {
             return;
         }
 
+
         // ---------------------------
         // Create NameplateManager second
         // ---------------------------
@@ -50,17 +52,21 @@ public final class BrainsCustoms extends JavaPlugin implements Listener {
         // ---------------------------
         Bukkit.getPluginManager().registerEvents(nameplateManager, this);
         Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this);
+        Bukkit.getPluginManager().registerEvents(new CustomsChatListener(), this);
 
         // ---------------------------
         // Register commands
         // ---------------------------
         getCommand("CustomsClearNameplates").setExecutor(new CustomsClearNameplates());
         getCommand("CustomsNameplate").setExecutor(new CustomsNameplate());
+        getCommand("CustomsReload").setExecutor(new CustomsReloadPlugin());
 
         displays.clear();
 
         getLogger().info("Brains Customs has been enabled!");
     }
+
+
 
     public static LuckPerms getLuckPerms() {
         return luckPerms;
