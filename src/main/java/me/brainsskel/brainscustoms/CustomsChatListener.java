@@ -4,6 +4,7 @@ import io.papermc.paper.chat.ChatRenderer;
 import io.papermc.paper.event.player.AsyncChatEvent;
 import net.kyori.adventure.audience.Audience;
 import net.kyori.adventure.text.minimessage.MiniMessage;
+import net.kyori.adventure.text.serializer.legacy.LegacyComponentSerializer;
 import net.kyori.adventure.text.serializer.plain.PlainTextComponentSerializer;
 import net.luckperms.api.LuckPerms;
 import net.luckperms.api.cacheddata.CachedMetaData;
@@ -50,11 +51,23 @@ public class CustomsChatListener implements Listener, ChatRenderer {
         String format = BrainsCustoms.getInstance().getConfig().getString("chat-format");
         User user = BrainsCustoms.getLuckPerms().getPlayerAdapter(Player.class).getUser(source);
         CachedMetaData meta = user.getCachedData().getMetaData();
+
         String prefix = meta.getPrefix() == null ? "" : meta.getPrefix();
+        String rank = prefix;
+
+
+
+
+
         String result = format
                 .replace("{PLAYER}", source.getName())
                 .replace("{MESSAGE}", PlainTextComponentSerializer.plainText().serialize(message))
-                .replace("{RANK}", prefix);
-        return miniMessage.deserialize(result);
+                .replace("{RANK}", rank);
+        if (prefix.contains("&")){
+            return LegacyComponentSerializer.legacyAmpersand().deserialize(result);
+        } else {
+            return miniMessage.deserialize(result);
+        }
+
     }
 }

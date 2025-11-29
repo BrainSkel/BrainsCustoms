@@ -99,7 +99,14 @@ public class NameplateManager implements Listener {
         String prefix = meta.getPrefix() == null ? "" : meta.getPrefix();
         String suffix = meta.getSuffix() == null ? "" : meta.getSuffix();
 
-        Component rank = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix);
+
+        Component rank;
+        if (prefix.contains("&")){
+            rank = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix);
+        } else {
+            rank = MiniMessage.miniMessage().deserialize(prefix);
+        }
+        //Component rank = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix);
 
 //        Component finalText = Component.text()
 //                .append(rank)
@@ -115,7 +122,7 @@ public class NameplateManager implements Listener {
             td.setBillboard(Display.Billboard.CENTER);
             td.setAlignment(TextDisplay.TextAlignment.CENTER);
             td.setShadowed(false);
-            td.setBackgroundColor(org.bukkit.Color.fromRGB(191, 247, 255));
+            //td.setBackgroundColor(org.bukkit.Color.fromRGB(191, 247, 255));
             td.text(rank);
         });
         TextDisplay playerNameDisplay = player.getWorld().spawn(loc, TextDisplay.class, td -> {

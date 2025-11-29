@@ -9,7 +9,7 @@ public class CustomsReloadPlugin implements CommandExecutor {
     @Override
     public boolean onCommand(CommandSender sender, Command command, String label, String[] args) {
 
-        sender.sendMessage("&a Reloading BrainsCustoms");
+        sender.sendMessage("<green>Reloading BrainsCustoms</green>");
 
         BrainsCustoms plugin = BrainsCustoms.getInstance();
 
@@ -18,7 +18,7 @@ public class CustomsReloadPlugin implements CommandExecutor {
         NameplateManager.get().reloadAllNameplates();
 
 
-        sender.sendMessage("&aReloaded BrainsCustoms!");
+        sender.sendMessage("<green>Reloaded BrainsCustoms!</green>");
         return true;
     }
 

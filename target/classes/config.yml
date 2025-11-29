@@ -1,1 +1,13 @@
 chat-format: "{RANK} <green>{PLAYER}</green>: <white>{MESSAGE}</white>"
+animated-rank1:
+  - "<transition:#ff12fb:#12f7ff:#ff0008:0>{RANK}</transition>"
+  - "<transition:#ff12fb:#12f7ff:#ff0008:0.1>{RANK}</transition>"
+  - "<transition:#ff12fb:#12f7ff:#ff0008:0.2>{RANK}</transition>"
+  - "<transition:#ff12fb:#12f7ff:#ff0008:0.3>{RANK}</transition>"
+  - "<transition:#ff12fb:#12f7ff:#ff0008:0.4>{RANK}</transition>"
+  - "<transition:#ff12fb:#12f7ff:#ff0008:0.5>{RANK}</transition>"
+  - "<transition:#ff12fb:#12f7ff:#ff0008:0.6>{RANK}</transition>"
+  - "<transition:#ff12fb:#12f7ff:#ff0008:0.7>{RANK}</transition>"
+  - "<transition:#ff12fb:#12f7ff:#ff0008:0.8>{RANK}</transition>"
+  - "<transition:#ff12fb:#12f7ff:#ff0008:0.9>{RANK}</transition>"
+  - "<transition:#ff12fb:#12f7ff:#ff0008:1>{RANK}</transition>"
