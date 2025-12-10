@@ -27,6 +27,7 @@ import org.bukkit.event.player.PlayerChangedWorldEvent;
 import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.event.player.PlayerRespawnEvent;
+import org.bukkit.scheduler.BukkitRunnable;
 import org.bukkit.scoreboard.Scoreboard;
 import org.bukkit.scoreboard.Team;
 import org.bukkit.util.Transformation;
@@ -87,25 +88,32 @@ public class NameplateManager implements Listener {
     // -------------------------
     public void create(Player player) {
 
+
         // remove old if exists
         remove(player);
 
         // hide vanilla name tag
         hideVanillaNameTag(player);
 
+        String[] frames = {
+                "\uE100", "\uE101", "\uE102", "\uE103", "\uE104", "\uE105", "\uE106", "\uE107", "\uE108"
+        };
+
         // get LuckPerms prefix
         User user = BrainsCustoms.getLuckPerms().getPlayerAdapter(Player.class).getUser(player);
         CachedMetaData meta = user.getCachedData().getMetaData();
+
         String prefix = meta.getPrefix() == null ? "" : meta.getPrefix();
         String suffix = meta.getSuffix() == null ? "" : meta.getSuffix();
 
 
-        Component rank;
-        if (prefix.contains("&")){
-            rank = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix);
-        } else {
-            rank = MiniMessage.miniMessage().deserialize(prefix);
-        }
+        Component rank = Component.text(frames[0]);
+
+//        if (prefix.contains("&")){
+//            rank = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix);
+//        } else {
+//            rank = MiniMessage.miniMessage().deserialize(prefix);
+//        }
         //Component rank = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix);
 
 //        Component finalText = Component.text()
@@ -122,9 +130,28 @@ public class NameplateManager implements Listener {
             td.setBillboard(Display.Billboard.CENTER);
             td.setAlignment(TextDisplay.TextAlignment.CENTER);
             td.setShadowed(false);
+            td.setBackgroundColor(null);
             //td.setBackgroundColor(org.bukkit.Color.fromRGB(191, 247, 255));
             td.text(rank);
         });
+
+        new BukkitRunnable() {
+            int frame = 0;
+
+            @Override
+            public void run() {
+                if (!player.isOnline() || rankDisplay.isDead()) {
+                    cancel();
+                    return;
+                }
+
+                rankDisplay.text(Component.text(frames[frame]));
+                frame = (frame + 1) % frames.length;
+            }
+
+        }.runTaskTimer(BrainsCustoms.getInstance(), 0, 2); // every 2 ticks
+
+
         TextDisplay playerNameDisplay = player.getWorld().spawn(loc, TextDisplay.class, td -> {
             td.setBillboard(Display.Billboard.CENTER);
             td.setAlignment(TextDisplay.TextAlignment.CENTER);

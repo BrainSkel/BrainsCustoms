@@ -39,6 +39,8 @@ public class CustomsChatListener implements Listener, ChatRenderer {
 
     }
 
+
+
     //------------------------//
 
     @EventHandler
@@ -48,26 +50,43 @@ public class CustomsChatListener implements Listener, ChatRenderer {
 
     @Override
     public Component render(Player source, Component sourceDisplayName, Component message, Audience viewer) {
+
         String format = BrainsCustoms.getInstance().getConfig().getString("chat-format");
         User user = BrainsCustoms.getLuckPerms().getPlayerAdapter(Player.class).getUser(source);
         CachedMetaData meta = user.getCachedData().getMetaData();
 
         String prefix = meta.getPrefix() == null ? "" : meta.getPrefix();
-        String rank = prefix;
 
-
-
-
+        Component prefixComponent;
+        if (prefix.contains("<")) {
+            prefixComponent = miniMessage.deserialize(prefix)
+                    .append(MiniMessage.miniMessage().deserialize("<reset>"));
+        } else {
+            prefixComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix + "&r"); // Bukkit colors
+        }
 
         String result = format
                 .replace("{PLAYER}", source.getName())
                 .replace("{MESSAGE}", PlainTextComponentSerializer.plainText().serialize(message))
-                .replace("{RANK}", rank);
-        if (prefix.contains("&")){
-            return LegacyComponentSerializer.legacyAmpersand().deserialize(result);
+                .replace("{RANK}", "");
+
+
+
+        Component baseFormat;
+        if (result.contains("&")) {
+            baseFormat = LegacyComponentSerializer.legacyAmpersand().deserialize(result);
         } else {
-            return miniMessage.deserialize(result);
+            baseFormat = miniMessage.deserialize(result);
         }
+
+
+
+//        if (prefix.contains("&")){
+//            return LegacyComponentSerializer.legacyAmpersand().deserialize(result + "&r");
+//        } else {
+//            return miniMessage.deserialize(result);
+//        }
+        return prefixComponent.append(Component.space()).append(baseFormat);
 
     }
 }
