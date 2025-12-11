@@ -13,3 +13,8 @@ chat-format: "{RANK} <green>{PLAYER}</green>: <white>{MESSAGE}</white>"
 #  - "<transition:#ff12fb:#12f7ff:#ff0008:1>{RANK}</transition>"
 
 
+rank-animations:
+  default:
+  creator:
+  jumal:
+  special:
