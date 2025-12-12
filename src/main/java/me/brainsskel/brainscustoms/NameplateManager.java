@@ -131,7 +131,7 @@ public class NameplateManager implements Listener {
             td.setAlignment(TextDisplay.TextAlignment.CENTER);
             td.setShadowed(false);
             td.setBackgroundColor(null);
-            //td.setBackgroundColor(org.bukkit.Color.fromRGB(191, 247, 255));
+            td.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0,0));
             td.text(rank);
         });
 
@@ -196,12 +196,14 @@ public class NameplateManager implements Listener {
         List<TextDisplay> list = displays.remove(player.getUniqueId());
         if (list == null) return;
 
-        for (TextDisplay td : list) {
-            if (!td.isDead()){
-                player.removePassenger(td);
-                td.remove();
+        Bukkit.getScheduler().runTask(BrainsCustoms.getInstance(), () -> {
+
+            for (TextDisplay td : list) {
+                if (td != null && !td.isDead() && td.isValid()) {
+                    td.remove();
+                }
             }
-        }
+        });
     }
 
     // -------------------------
@@ -268,7 +270,7 @@ public class NameplateManager implements Listener {
     // Optional: auto-create nameplate on join
     @EventHandler
     public void onJoin(PlayerJoinEvent e) {
-        reloadAllNameplates();
+        //reloadAllNameplates();
         Bukkit.getScheduler().runTaskLater(BrainsCustoms.getInstance(), () ->
                 create(e.getPlayer()), 5L);
 

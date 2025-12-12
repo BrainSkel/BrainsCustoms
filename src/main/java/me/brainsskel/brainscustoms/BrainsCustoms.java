@@ -48,6 +48,7 @@ public final class BrainsCustoms extends JavaPlugin implements Listener {
         NameplateManager nameplateManager = new NameplateManager(luckPerms);
         CustomsChatListener customsChatListener = new CustomsChatListener(luckPerms);
 
+
         // ---------------------------
         // Register Bukkit listeners
         // ---------------------------
@@ -62,6 +63,8 @@ public final class BrainsCustoms extends JavaPlugin implements Listener {
         getCommand("CustomsNameplate").setExecutor(new CustomsNameplate());
         getCommand("CustomsReload").setExecutor(new CustomsReloadPlugin());
 
+
+        NameplateManager.get().reloadAllNameplates();
         displays.clear();
 
         getLogger().info("Brains Customs has been enabled!");
@@ -88,6 +91,7 @@ public final class BrainsCustoms extends JavaPlugin implements Listener {
     @Override
     public void onDisable() {
         getLogger().info("Brains Customs has been disabled!");
+        NameplateManager.get().reloadAllNameplates();
     }
 
 }
