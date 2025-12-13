@@ -251,13 +251,17 @@ public class NameplateManager implements Listener {
     // Remove when quitting
     @EventHandler
     public void onQuit(PlayerQuitEvent e) {
-        remove(e.getPlayer());
+        Bukkit.getScheduler().runTaskLater(BrainsCustoms.getInstance(), () ->
+            remove(e.getPlayer()), 2L);
+
     }
 
     // Remove when dying
     @EventHandler
     public void onDeath(PlayerDeathEvent e) {
-        remove(e.getEntity());
+        Bukkit.getScheduler().runTaskLater(BrainsCustoms.getInstance(), () ->
+                remove(e.getEntity()), 2L);
+
     }
 
     // Recreate when respawning
