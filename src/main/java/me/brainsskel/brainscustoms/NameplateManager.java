@@ -34,14 +34,16 @@ import org.bukkit.util.Transformation;
 import org.jetbrains.annotations.NotNull;
 import org.joml.AxisAngle4f;
 import org.joml.Vector3f;
-import java.util.List;
+import org.yaml.snakeyaml.Yaml;
+
+import java.io.InputStream;
+import java.util.*;
 
 import java.awt.*;
 import java.awt.Color;
-import java.util.HashMap;
-import java.util.Map;
-import java.util.UUID;
+import java.util.List;
 
+import static org.apache.logging.log4j.status.StatusLogger.getLogger;
 
 
 public class NameplateManager implements Listener {
@@ -81,6 +83,9 @@ public class NameplateManager implements Listener {
                     .filter(e -> e instanceof TextDisplay)
                     .forEach(Entity::remove);
         }
+
+
+
     }
 
     // -------------------------
@@ -88,6 +93,58 @@ public class NameplateManager implements Listener {
     // -------------------------
     public void create(Player player) {
 
+        // load config safely
+        Yaml yaml = new Yaml();
+        InputStream in = getClass().getClassLoader().getResourceAsStream("config.yml");
+        Map<String, Object> config = Collections.emptyMap();
+        if (in != null) {
+            Object loaded = yaml.load(in);
+            if (loaded instanceof Map) {
+                @SuppressWarnings("unchecked")
+                Map<String, Object> tmp = (Map<String, Object>) loaded;
+                config = tmp;
+            }
+        }
+
+        // defensive cast: rank-animations may be missing or not the shape we expect
+        Map<String, Map<String, List<String>>> animations = Collections.emptyMap();
+        Object rawAnimations = config.get("rank-animations");
+        if (rawAnimations instanceof Map) {
+            @SuppressWarnings("unchecked")
+            Map<String, Object> top = (Map<String, Object>) rawAnimations;
+            Map<String, Map<String, List<String>>> safe = new HashMap<>();
+            for (Map.Entry<String, Object> e : top.entrySet()) {
+                String rankKey = e.getKey();
+                Object inner = e.getValue();
+                if (inner instanceof Map) {
+                    @SuppressWarnings("unchecked")
+                    Map<String, Object> innerMap = (Map<String, Object>) inner;
+                    Object framesObj = innerMap.get("frames");
+                    if (framesObj instanceof List) {
+                        @SuppressWarnings("unchecked")
+                        List<Object> rawList = (List<Object>) framesObj;
+                        List<String> frames = new ArrayList<>();
+                        for (Object o : rawList) {
+                            if (o != null) frames.add(String.valueOf(o));
+                        }
+                        Map<String, List<String>> m = new HashMap<>();
+                        m.put("frames", List.copyOf(frames));
+                        safe.put(rankKey, m);
+                    } else {
+                        // no frames key or not a list -> store empty frames list
+                        Map<String, List<String>> m = new HashMap<>();
+                        m.put("frames", List.of());
+                        safe.put(rankKey, m);
+                    }
+                } else {
+                    // rank entry exists but is not a map -> treat as empty frames
+                    Map<String, List<String>> m = new HashMap<>();
+                    m.put("frames", List.of());
+                    safe.put(rankKey, m);
+                }
+            }
+            animations = safe;
+        }
 
         // remove old if exists
         remove(player);
@@ -95,46 +152,49 @@ public class NameplateManager implements Listener {
         // hide vanilla name tag
         hideVanillaNameTag(player);
 
-        String[] frames = {
-                "\uE100", "\uE101", "\uE102", "\uE103", "\uE104", "\uE105", "\uE106", "\uE107", "\uE108"
-        };
-
         // get LuckPerms prefix
         User user = BrainsCustoms.getLuckPerms().getPlayerAdapter(Player.class).getUser(player);
         CachedMetaData meta = user.getCachedData().getMetaData();
 
         String prefix = meta.getPrefix() == null ? "" : meta.getPrefix();
         String suffix = meta.getSuffix() == null ? "" : meta.getSuffix();
+        String playerRank = meta.getPrimaryGroup();
 
+        // prepare frames safely
+        List<String> frames = new ArrayList<>();
+        if (prefix != null && !prefix.isEmpty()) frames.add(prefix);
+        else frames.add(player.getName());
 
-        Component rank = Component.text(frames[0]);
+        if (animations != null && animations.containsKey(playerRank)) {
+            List<String> cfgFrames = animations.get(playerRank).get("frames");
+            if (cfgFrames != null && !cfgFrames.isEmpty()) {
+                frames = new ArrayList<>(cfgFrames);
+            }
+        }
+        final List<String> Finalframes = frames.isEmpty() ? List.of(player.getName()) : List.copyOf(frames);
 
-//        if (prefix.contains("&")){
-//            rank = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix);
-//        } else {
-//            rank = MiniMessage.miniMessage().deserialize(prefix);
-//        }
-        //Component rank = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix);
+        // initial component for rank (use first frame safely)
+        Component rank;
+        try {
+            rank = MiniMessage.miniMessage().deserialize(Finalframes.get(0));
+        } catch (Exception ex) {
+            rank = Component.text(Finalframes.get(0));
+        }
+        final Component finalRank = rank;
 
-//        Component finalText = Component.text()
-//                .append(rank)
-//                .append(Component.newline())
-//                .append(Component.text(player.getName(), NamedTextColor.WHITE))
-//                .build();
-
-        Component playerName = MiniMessage.miniMessage().deserialize("<gradient:#c9c9c9:#e8e8e8>"+ player.getName() +"</gradient>");
-        Location loc = player.getLocation();
+        Component playerName = MiniMessage.miniMessage().deserialize("<gradient:#c9c9c9:#e8e8e8>" + player.getName() + "</gradient>");
+        Location loc = player.getLocation().clone();
         loc.setPitch(90F);
 
         TextDisplay rankDisplay = player.getWorld().spawn(loc, TextDisplay.class, td -> {
             td.setBillboard(Display.Billboard.CENTER);
             td.setAlignment(TextDisplay.TextAlignment.CENTER);
             td.setShadowed(false);
-            td.setBackgroundColor(null);
-            td.setBackgroundColor(org.bukkit.Color.fromARGB(0, 0, 0,0));
-            td.text(rank);
+            td.setBackgroundColor(null); // transparent background
+            td.text(finalRank);
         });
 
+        // animation task (use MiniMessage parsing per-frame but guarded)
         new BukkitRunnable() {
             int frame = 0;
 
@@ -145,21 +205,25 @@ public class NameplateManager implements Listener {
                     return;
                 }
 
-                rankDisplay.text(Component.text(frames[frame]));
-                frame = (frame + 1) % frames.length;
+                String raw = Finalframes.get(frame);
+                Component comp;
+                try {
+                    comp = MiniMessage.miniMessage().deserialize(raw);
+                } catch (Exception ex) {
+                    comp = Component.text(raw);
+                }
+                rankDisplay.text(comp);
+                frame = (frame + 1) % Finalframes.size();
             }
 
         }.runTaskTimer(BrainsCustoms.getInstance(), 0, 2); // every 2 ticks
-
 
         TextDisplay playerNameDisplay = player.getWorld().spawn(loc, TextDisplay.class, td -> {
             td.setBillboard(Display.Billboard.CENTER);
             td.setAlignment(TextDisplay.TextAlignment.CENTER);
             td.setShadowed(true);
             td.text(playerName);
-            //td.setBackgroundColor(org.bukkit.Color.fromRGB(0,255,204)); // optional
         });
-
 
         // correct offset ABOVE the head
         rankDisplay.setTransformation(
@@ -180,12 +244,13 @@ public class NameplateManager implements Listener {
                 )
         );
 
-        // make display follow player
+        // make display follow player (your original approach)
         player.addPassenger(rankDisplay);
         player.addPassenger(playerNameDisplay);
 
         displays.put(player.getUniqueId(), List.of(rankDisplay, playerNameDisplay));
     }
+
 
 
 

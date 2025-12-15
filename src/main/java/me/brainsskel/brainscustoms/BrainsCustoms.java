@@ -9,7 +9,9 @@ import org.bukkit.event.player.PlayerJoinEvent;
 import org.bukkit.event.player.PlayerQuitEvent;
 import org.bukkit.plugin.RegisteredServiceProvider;
 import org.bukkit.plugin.java.JavaPlugin;
-
+import org.yaml.snakeyaml.Yaml;
+import java.util.logging.Level;
+import java.io.InputStream;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.UUID;
@@ -27,6 +29,7 @@ public final class BrainsCustoms extends JavaPlugin implements Listener {
         instance = this;
         saveDefaultConfig();
 
+
         // ---------------------------
         // Hook LuckPerms FIRST
         // ---------------------------
@@ -38,6 +41,8 @@ public final class BrainsCustoms extends JavaPlugin implements Listener {
             getLogger().info("LuckPerms API hooked successfully!");
         } else {
             getLogger().warning("Could not hook into LuckPerms!");
+            getLogger().log(Level.WARNING, "Disabling plugin because LuckPerms is required.");
+            getServer().getPluginManager().disablePlugin(this);
             return;
         }
 
@@ -69,6 +74,7 @@ public final class BrainsCustoms extends JavaPlugin implements Listener {
 
         getLogger().info("Brains Customs has been enabled!");
     }
+
 
 
 
