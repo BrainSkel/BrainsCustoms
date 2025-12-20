@@ -1,9 +1,10 @@
-me\brainsskel\brainscustoms\BrainsCustoms.class
 me\brainsskel\brainscustoms\CustomsClearNameplates.class
 me\brainsskel\brainscustoms\CustomsReloadPlugin.class
 me\brainsskel\brainscustoms\CustomsChatListener.class
 me\brainsskel\brainscustoms\CustomsNameplate.class
-me\brainsskel\brainscustoms\MovementListener.class
 me\brainsskel\brainscustoms\NameplateManager.class
+me\brainsskel\brainscustoms\CustomsNameplateReloadPlugin.class
+me\brainsskel\brainscustoms\BrainsCustoms.class
+me\brainsskel\brainscustoms\MovementListener.class
 me\brainsskel\brainscustoms\PlayerQuitListener.class
 me\brainsskel\brainscustoms\NameplateManager$1.class

@@ -7,8 +7,11 @@ import net.luckperms.api.cacheddata.CachedMetaData;
 import net.luckperms.api.event.user.UserDataRecalculateEvent;
 import net.luckperms.api.model.user.User;
 import org.bukkit.Bukkit;
+import org.bukkit.Color;
 import org.bukkit.Location;
 import org.bukkit.World;
+import org.bukkit.configuration.ConfigurationSection;
+import org.bukkit.configuration.file.FileConfiguration;
 import org.bukkit.entity.Display;
 import org.bukkit.entity.Entity;
 import org.bukkit.entity.Player;
@@ -80,25 +83,32 @@ public class NameplateManager implements Listener {
     // Create or Update Nameplate
     // -------------------------
     public void create(Player player) {
+        remove(player);
 
-        // load config safely
-        // --- load config and build simple rank -> frames map (minimal, robust) ---
-// parse config.yml into a nested map: rank -> (map with "frames" -> List<String>)
-        Yaml yaml = new Yaml();
-//        Map<String, Map<String, List<String>>> rankAnimations = Collections.emptyMap();
-//        Map<String, List<String>> rankToFrames = Collections.emptyMap();
+        FileConfiguration config = BrainsCustoms.getInstance().getConfig();
 
-
-
-
-
-// Resolve frames for this player (safe lookup)
         User user = BrainsCustoms.getLuckPerms().getPlayerAdapter(Player.class).getUser(player);
         CachedMetaData meta = user.getCachedData().getMetaData();
+        String prefix = meta.getPrefix();
         String playerRank = meta.getPrimaryGroup();
 
 
-        List<String> frames = config.getStringList("rank-animations.creator.frames");
+        ConfigurationSection section = config.getConfigurationSection("rank-animations");
+
+        List<String> frames = null;
+
+        BrainsCustoms.getInstance().getLogger().info("[CustomNameplates] section" + section);
+        if (section != null) {
+
+            if(section.contains(playerRank)) {
+                frames = section.getStringList(playerRank + ".frames");
+            }
+        }
+        if (frames == null || frames.isEmpty()) {
+            frames = new ArrayList<>();
+            frames.add(prefix);
+            //frames = config.getStringList("rank-animations.default.frames");
+        }
 
 
         // initial component for rank (use first frame safely)
@@ -118,7 +128,7 @@ public class NameplateManager implements Listener {
             td.setBillboard(Display.Billboard.CENTER);
             td.setAlignment(TextDisplay.TextAlignment.CENTER);
             td.setShadowed(false);
-            td.setBackgroundColor(null); // transparent background
+            td.setBackgroundColor(Color.fromARGB(0,0,0,0)); // transparent background
             td.text(finalRank);
         });
 
@@ -228,6 +238,11 @@ public class NameplateManager implements Listener {
 
     }
 
+    public void reloadNameplate(Player player) {
+        remove(player);
+        create(player);
+    }
+
     // -------------------------
     // Events for cleanup & recreation
     // -------------------------
@@ -271,6 +286,7 @@ public class NameplateManager implements Listener {
         //reloadAllNameplates();
         Bukkit.getScheduler().runTaskLater(BrainsCustoms.getInstance(), () ->
                 create(e.getPlayer()), 5L);
+
 
     }
 

@@ -61,12 +61,14 @@ public final class BrainsCustoms extends JavaPlugin implements Listener {
         Bukkit.getPluginManager().registerEvents(new PlayerQuitListener(), this);
         Bukkit.getPluginManager().registerEvents(customsChatListener, this);
 
+
         // ---------------------------
         // Register commands
         // ---------------------------
         getCommand("CustomsClearNameplates").setExecutor(new CustomsClearNameplates());
         getCommand("CustomsNameplate").setExecutor(new CustomsNameplate());
         getCommand("CustomsReload").setExecutor(new CustomsReloadPlugin());
+        getCommand("CustomsNameplateReload").setExecutor(new CustomsNameplateReloadPlugin());
 
 
         NameplateManager.get().reloadAllNameplates();

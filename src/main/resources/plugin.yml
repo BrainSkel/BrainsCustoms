@@ -7,13 +7,16 @@ description: Plugin for brains random shit
 commands:
   CustomsNameplate:
     description: Set nameplate
-    usage: /CustomsNameplate <player>
+    usage: /Customs Nameplate <player>
     permission: brainscustoms.enableNameplate
   CustomsClearNameplates:
     description: Clear all text displays
-    usage: /CustomsClearNameplates
+    usage: /Customs ClearNameplates
     permission: brainscustoms.ClearNameplates
   CustomsReload:
     description: Reloads BrainsCustoms plugin
-    usage: /CustomsReload
+    usage: /Customs Reload
     permission: brainscustoms.reload
+  CustomsNameplateReload:
+    description: Reload certain players nameplate
+    usage: /Customs Nameplate Reload <player>
