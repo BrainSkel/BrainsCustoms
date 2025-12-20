@@ -167,7 +167,7 @@ public class NameplateManager implements Listener {
         // correct offset ABOVE the head
         rankDisplay.setTransformation(
                 new Transformation(
-                        new Vector3f(0, 0.55f, -0.2F),
+                        new Vector3f(0F, 0.55f, 0F),
                         new AxisAngle4f(),
                         new Vector3f(1, 1, 1),
                         new AxisAngle4f()
@@ -176,7 +176,7 @@ public class NameplateManager implements Listener {
 
         playerNameDisplay.setTransformation(
                 new Transformation(
-                        new Vector3f(0, 0.30f, -0.2F),
+                        new Vector3f(0F, 0.30f, 0F),
                         new AxisAngle4f(),
                         new Vector3f(1, 1, 1),
                         new AxisAngle4f()
