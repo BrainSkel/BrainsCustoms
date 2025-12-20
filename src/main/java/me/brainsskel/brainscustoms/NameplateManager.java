@@ -82,54 +82,101 @@ public class NameplateManager implements Listener {
     public void create(Player player) {
 
         // load config safely
+        // --- load config and build simple rank -> frames map (minimal, robust) ---
+// parse config.yml into a nested map: rank -> (map with "frames" -> List<String>)
         Yaml yaml = new Yaml();
-        InputStream inputStream = getClass().getClassLoader().getResourceAsStream("config.yml");
-        Map<String, Map<String,List<String>>> rankAnimations = yaml.load(inputStream);
+        Map<String, Map<String, List<String>>> rankAnimations = Collections.emptyMap();
+        Map<String, List<String>> rankToFrames = Collections.emptyMap();
 
+        try (InputStream inputStream = getClass().getClassLoader().getResourceAsStream("config.yml")) {
+            Object root = yaml.load(inputStream); // root is Map<String,Object>
+            if (root instanceof Map<?, ?> rootMap) {
+                Object raw = rootMap.get("rank-animations");
+                if (raw instanceof Map<?, ?> animMap) {
+                    Map<String, Map<String, List<String>>> tmpNested = new HashMap<>();
+                    Map<String, List<String>> tmpFlat = new HashMap<>();
 
+                    for (Map.Entry<?, ?> e : ((Map<?, ?>) animMap).entrySet()) {
+                        if (!(e.getKey() instanceof String)) continue;
+                        String rankName = (String) e.getKey();
+                        Object rawVal = e.getValue();
 
-/// ///////////////////////////////
-        // remove old if exists
-        remove(player);
+                        // Case A: rank block is a map with "frames" key
+                        if (rawVal instanceof Map<?, ?> rankBlock) {
+                            Object rawFrames = rankBlock.get("frames");
+                            List<String> framesList = new ArrayList<>();
+                            if (rawFrames instanceof List<?> framesObj) {
+                                for (Object item : framesObj) {
+                                    if (item != null) framesList.add(String.valueOf(item));
+                                }
+                            }
+                            // put nested map (keep "frames" key even if empty)
+                            Map<String, List<String>> nested = new HashMap<>();
+                            nested.put("frames", List.copyOf(framesList));
+                            tmpNested.put(rankName, Map.copyOf(nested));
 
-        // hide vanilla name tag
-        hideVanillaNameTag(player);
+                            // also populate flat map if frames exist
+                            if (!framesList.isEmpty()) tmpFlat.put(rankName, List.copyOf(framesList));
+                        }
+                        // Case B: rank directly defined as a list of frames (tolerant)
+                        else if (rawVal instanceof List<?> framesObj) {
+                            List<String> framesList = new ArrayList<>();
+                            for (Object item : framesObj) {
+                                if (item != null) framesList.add(String.valueOf(item));
+                            }
+                            // nested representation with "frames" key
+                            Map<String, List<String>> nested = new HashMap<>();
+                            nested.put("frames", List.copyOf(framesList));
+                            tmpNested.put(rankName, Map.copyOf(nested));
 
-        // get LuckPerms prefix
+                            if (!framesList.isEmpty()) tmpFlat.put(rankName, List.copyOf(framesList));
+                        }
+                        // unexpected type -> create empty nested entry to preserve key
+                        else {
+                            Map<String, List<String>> nested = new HashMap<>();
+                            nested.put("frames", List.of());
+                            tmpNested.put(rankName, Map.copyOf(nested));
+                            BrainsCustoms.getInstance().getLogger().info("[NameplateManager] rank '" + rankName + "' has unexpected type: " + (rawVal == null ? "null" : rawVal.getClass().getName()));
+                        }
+                    }
+
+                    rankAnimations = Map.copyOf(tmpNested);
+                    rankToFrames = Map.copyOf(tmpFlat);
+                } else {
+                    BrainsCustoms.getInstance().getLogger().warning("[NameplateManager] 'rank-animations' missing or not a map in config.yml");
+                }
+            } else {
+                BrainsCustoms.getInstance().getLogger().warning("[NameplateManager] config.yml root is not a map");
+            }
+        } catch (Exception ex) {
+            BrainsCustoms.getInstance().getLogger().severe("[NameplateManager] error loading config.yml: " + ex);
+            ex.printStackTrace();
+        }
+// Resolve frames for this player (safe lookup)
         User user = BrainsCustoms.getLuckPerms().getPlayerAdapter(Player.class).getUser(player);
         CachedMetaData meta = user.getCachedData().getMetaData();
-
-        String prefix = meta.getPrefix() == null ? "" : meta.getPrefix();
-        String suffix = meta.getSuffix() == null ? "" : meta.getSuffix();
         String playerRank = meta.getPrimaryGroup();
-/// ///////////////////////////////
+        final List<String> frames = rankToFrames.containsKey(playerRank)
+                ? rankToFrames.get(playerRank)
+                : rankToFrames.getOrDefault("default", List.of(player.getName()));
+        BrainsCustoms.getInstance().getLogger().info("playerRank = '" + playerRank + "', frames = " + String.join(", ", frames));
 
 
 
-        //List<String> frames = rankAnimations.getOrDefault(playerRank, List.of(player.getName()));
 
-
-//        if (prefix != null && !prefix.isEmpty()) frames.add(prefix);
-//        else frames.add(player.getName());
-//
-//        if (animations != null && animations.containsKey(playerRank)) {
-//            List<String> cfgFrames = animations.get(playerRank).get("frames");
-//            if (cfgFrames != null && !cfgFrames.isEmpty()) {
-//                frames = new ArrayList<>(cfgFrames);
+//        for (String rank : rankToFrames.keySet()) {
+//            if (playerRank.equals(rank)) {
+//                frames = rankToFrames.get(rank);
+//                BrainsCustoms.getInstance().getLogger().info("Frames = '" + rankToFrames.get(rank) + "'");
+//                BrainsCustoms.getInstance().getLogger().info("your rank "+ rank+ "frames for playernak '" + playerRank + "': " + String.join(", ", frames));
+//                break; // stop searching, do not return
 //            }
 //        }
-//        final List<String> Finalframes = frames.isEmpty() ? List.of(player.getName()) : List.copyOf(frames);
+//        if (frames == null || frames.isEmpty()) {
+//            frames = List.of(player.getName()); // fallback
+//        }
+        //BrainsCustoms.getInstance().getLogger().info("your rank "+ + "frames for playernak '" + playerRank + "': " + String.join(", ", frames));
 
-
-        Map<String, List<String>> rankBlock = rankAnimations == null ? null: rankAnimations.get(playerRank);
-        List<String> frames;
-
-
-        if (rankBlock !=null && rankBlock.get("frames") != null) {
-            frames= rankBlock.get("frames");
-        } else {
-            frames = List.of(player.getName());
-        }
 
 
 
@@ -155,6 +202,7 @@ public class NameplateManager implements Listener {
         });
 
         // animation task (use MiniMessage parsing per-frame but guarded)
+        List<String> finalFrames = frames;
         new BukkitRunnable() {
             int frame = 0;
 
@@ -165,7 +213,7 @@ public class NameplateManager implements Listener {
                     return;
                 }
 
-                String raw = frames.get(frame);
+                String raw = finalFrames.get(frame);
                 Component comp;
                 try {
                     comp = MiniMessage.miniMessage().deserialize(raw);
@@ -173,7 +221,7 @@ public class NameplateManager implements Listener {
                     comp = Component.text(raw);
                 }
                 rankDisplay.text(comp);
-                frame = (frame + 1) % frames.size();
+                frame = (frame + 1) % finalFrames.size();
             }
 
         }.runTaskTimer(BrainsCustoms.getInstance(), 0, 2); // every 2 ticks
