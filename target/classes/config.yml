@@ -1,24 +1,36 @@
-chat-format: "{RANK} <green>{PLAYER}</green>: <white>{MESSAGE}</white>"
-#animated-rank1:
-#  - "<transition:#ff12fb:#12f7ff:#ff0008:0>{RANK}</transition>"
-#  - "<transition:#ff12fb:#12f7ff:#ff0008:0.1>{RANK}</transition>"
-#  - "<transition:#ff12fb:#12f7ff:#ff0008:0.2>{RANK}</transition>"
-#  - "<transition:#ff12fb:#12f7ff:#ff0008:0.3>{RANK}</transition>"
-#  - "<transition:#ff12fb:#12f7ff:#ff0008:0.4>{RANK}</transition>"
-#  - "<transition:#ff12fb:#12f7ff:#ff0008:0.5>{RANK}</transition>"
-#  - "<transition:#ff12fb:#12f7ff:#ff0008:0.6>{RANK}</transition>"
-#  - "<transition:#ff12fb:#12f7ff:#ff0008:0.7>{RANK}</transition>"
-#  - "<transition:#ff12fb:#12f7ff:#ff0008:0.8>{RANK}</transition>"
-#  - "<transition:#ff12fb:#12f7ff:#ff0008:0.9>{RANK}</transition>"
-#  - "<transition:#ff12fb:#12f7ff:#ff0008:1>{RANK}</transition>"
-
-
+chat-format: "{RANK}<reset> {PLAYER}<bold>➤</bold><reset><gray>{MESSAGE}</gray>"
 rank-animations:
   default:
-    - ""
+    frames:
+      - "\uE000"
+      - "\uE001"
+      - "\uE002"
+      - "\uE003"
+      - "\uE004"
+      - "\uE005"
+      - "\uE006"
+      - "\uE007"
   creator:
-    - ""
+    frames:
+      - "\uE100"
+      - "\uE101"
+      - "\uE102"
+      - "\uE103"
+      - "\uE104"
+      - "\uE105"
+      - "\uE106"
+      - "\uE107"
+      - "\uE108"
   jumal:
-    - ""
   special:
-    - ""
+  admin:
+    frames:
+      - "\uE200"
+      - "\uE201"
+      - "\uE202"
+      - "\uE203"
+      - "\uE204"
+      - "\uE205"
+      - "\uE206"
+      - "\uE207"
+      - "\uE208"

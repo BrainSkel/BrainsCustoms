@@ -102,7 +102,7 @@ public class CustomsChatListener implements Listener, ChatRenderer {
 //        } else {
 //            return miniMessage.deserialize(result);
 //        }
-        return miniMessage.deserialize(result);
+        return miniMessage.deserialize(convertLegacyToMiniMessage(result));
 
     }
 }
