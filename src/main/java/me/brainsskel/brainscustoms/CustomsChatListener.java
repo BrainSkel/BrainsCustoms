@@ -43,6 +43,28 @@ public class CustomsChatListener implements Listener, ChatRenderer {
 
     //------------------------//
 
+    private static final String[][] LEGACY_TO_MINIMESSAGE = {
+            {"&0", "<black>"}, {"&1", "<dark_blue>"}, {"&2", "<dark_green>"}, {"&3", "<dark_aqua>"},
+            {"&4", "<dark_red>"}, {"&5", "<dark_purple>"}, {"&6", "<gold>"}, {"&7", "<gray>"},
+            {"&8", "<dark_gray>"}, {"&9", "<blue>"}, {"&a", "<green>"}, {"&b", "<aqua>"},
+            {"&c", "<red>"}, {"&d", "<light_purple>"}, {"&e", "<yellow>"}, {"&f", "<white>"},
+            {"&k", "<obfuscated>"}, {"&l", "<bold>"}, {"&m", "<strikethrough>"}, {"&n", "<underline>"},
+            {"&o", "<italic>"}, {"&r", "<reset>"}
+    };
+
+    public static String convertLegacyToMiniMessage(String legacyMessage) {
+        String miniMessageFormatted = legacyMessage;
+
+        // Loop through all Legacy to MiniMessage color code mappings
+        for (String[] mapping : LEGACY_TO_MINIMESSAGE) {
+            miniMessageFormatted = miniMessageFormatted.replace(mapping[0], mapping[1]);
+        }
+
+        // Return the MiniMessage Component
+        return miniMessageFormatted;
+    }
+
+
     @EventHandler
     public void onChat(AsyncChatEvent event) {
         event.renderer(this); // Tell the event to use our renderer
@@ -68,16 +90,10 @@ public class CustomsChatListener implements Listener, ChatRenderer {
         String result = format
                 .replace("{PLAYER}", source.getName())
                 .replace("{MESSAGE}", PlainTextComponentSerializer.plainText().serialize(message))
-                .replace("{RANK}", "");
+                .replace("{RANK}", convertLegacyToMiniMessage(prefix));
 
 
 
-        Component baseFormat;
-        if (result.contains("&")) {
-            baseFormat = LegacyComponentSerializer.legacyAmpersand().deserialize(result);
-        } else {
-            baseFormat = miniMessage.deserialize(result);
-        }
 
 
 
@@ -86,7 +102,7 @@ public class CustomsChatListener implements Listener, ChatRenderer {
 //        } else {
 //            return miniMessage.deserialize(result);
 //        }
-        return prefixComponent.append(Component.space()).append(baseFormat);
+        return miniMessage.deserialize(result);
 
     }
 }
