@@ -78,19 +78,15 @@ public class CustomsChatListener implements Listener, ChatRenderer {
         CachedMetaData meta = user.getCachedData().getMetaData();
 
         String prefix = meta.getPrefix() == null ? "" : meta.getPrefix();
+        String suffix = meta.getSuffix() == null ? "" : meta.getSuffix();
 
-        Component prefixComponent;
-        if (prefix.contains("<")) {
-            prefixComponent = miniMessage.deserialize(prefix)
-                    .append(MiniMessage.miniMessage().deserialize("<reset>"));
-        } else {
-            prefixComponent = LegacyComponentSerializer.legacyAmpersand().deserialize(prefix + "&r"); // Bukkit colors
-        }
 
         String result = format
                 .replace("{PLAYER}", source.getName())
                 .replace("{MESSAGE}", PlainTextComponentSerializer.plainText().serialize(message))
+                .replace("{SUFFIX}", convertLegacyToMiniMessage(suffix))
                 .replace("{RANK}", convertLegacyToMiniMessage(prefix));
+
 
 
 
